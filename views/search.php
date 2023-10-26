@@ -1,14 +1,3 @@
-<?php
-include '../configuration/connexion.inc.php';
-
-// Get all equipe
-$equipeRequest = "SELECT * FROM equipe";
-$equipeList = $pdo->query($equipeRequest);
-$equipes = $equipeList->fetchAll();
-
-?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,27 +6,30 @@ $equipes = $equipeList->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/bootstrap/css/bootstrap.css">
     <script src="../css/bootstrap/js/bootstrap.js"></script>
-    <title>Creation d'un match</title>
+    <title>Rechercher</title>
 </head>
 
 <body>
     <div class="container mt-3">
-        <a href="./menu.php" class="btn btn-secondary mt-5" style="margin-bottom: 20px; margin-left: 0;">Retour à la liste</a>
+        <a href="./index.php" class="btn btn-secondary mt-5" style="margin-bottom: 20px; margin-left: 0;">Retour à la liste</a>
         <div class="col-md-12 shadow p-3 bg-body rounded">
             <div class="card">
                 <div class="card-header">
-                    <h5>Rehercher joueur par équipe</h5>
+                    <h5>Reherche d'informations de séjour</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="">
                         <div class="row col-md-12 mt-4">
-                            <div class="col">
-                                <select class="form-control" name="idequipe" id="idequipe" required>
-                                    <option value="">Veuillez selectionner une équipe</option>
-                                    <?php foreach ($equipes as $equipe) : ?>
-                                        <option value="<?= $equipe['idequipe'] ?>"><?= $equipe['nomequipe'] ?></option>
-                                    <?php endforeach ?>
-                                </select>
+                            <div class="row col-md-12">
+                                <div class="mb-2 col">
+                                    <div>
+                                        <label for="description" class="col-md col-form-label">Description de la tâche</label>
+                                    </div>
+
+                                    <div class="col">
+                                        <textarea id="description" name="description" type="text" class="form-control" autofocus required></textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -55,54 +47,61 @@ $equipes = $equipeList->fetchAll();
         <?php
         include '../configuration/connexion.inc.php';
 
-        if (isset($_POST['idequipe']) && !empty($_POST['idequipe'])) {
-            $idequipe = htmlspecialchars(strip_tags($_POST['idequipe']));
+        if (isset($_POST['description'])) {
+            if (!empty($_POST['description'])) {
+                $description = htmlspecialchars(strip_tags($_POST['description']));
 
-            $searchRequest = "SELECT * FROM joueur WHERE idequipe = :idequipe";
-            $stmp = $pdo->prepare($searchRequest);
-            $stmp->bindParam(':idequipe', $idequipe);
-            $stmp->execute();
-            if ($stmp->execute()) {
-                $answers = $stmp->fetchAll();
-
-                # code...
-
-                echo " <div class='col-md-12 shadow p-3 bg-body rounded'>";
-                echo "<table class='table table-bordered'>";
-                echo "<thead>";
-                echo "<tr>";
-                echo "<th scope='col'>Nom</th>";
-                echo "<th scope='col'>Prénoms</th>";
-                echo "<th scope='col'>Contact</th>";
-                echo "<th scope='col'>Poste</th>";
-                echo "</tr>";
-                echo "</thead>";
-                echo "<tbody>";
-                if (count($answers) > 0) {
-                    foreach ($answers as $answer) {
+                // RECUPERER L'ID DU VOYAGEUR DONC LES INFOS SONT RENSEIGNEES
+                $searchRequest = "SELECT * FROM tasks WHERE description = :description";
+                $stmp = $pdo->prepare($searchRequest);
+                $stmp->bindParam(':description', $description);
+                if ($stmp->execute()) {
+                    $ans = $stmp->fetchAll();
+                    if (!count($ans) > 0) {
+                        echo "
+                            <script>
+                            alert('Aucune tache trouvé');
+                            window.location.href='../views/search.php';
+                            </script>
+                        ";
+                    }
+                    echo " <div class='col-md-12 shadow p-3 bg-body rounded'>";
+                    echo "<table class='table table-bordered'>";
+                    echo "<thead>";
+                    echo "<tr>";
+                    echo "<th scope='col'>Description</th>";
+                    echo "<th scope='col'>Créée le</th>";
+                    echo "</tr>";
+                    echo "</thead>";
+                    echo "<tbody>";
+                    if (count($ans) > 0) {
+                        foreach ($ans as $answer) {
+                            echo "<tr>";
+                            echo "<td>" . $answer['description'] . "</td>";
+                            echo "<td>" . $answer['created_at'] . "</td>";
+                            echo "</tr>";
+                        }
+                    } else {
                         echo "<tr>";
-                        echo "<td>" . $answer['nomjoueur'] . "</td>";
-                        echo "<td>" . $answer['prenomjoueur'] . "</td>";
-                        echo "<td>" . $answer['contactjoueur'] . "</td>";
-                        echo "<td>" . $answer['postejoueur'] . "</td>";
+                        echo "<td colspan=4 class='text-center'>Aucune information trouvée</td>";
                         echo "</tr>";
                     }
-                } else {
-                    echo "<tr>";
-                    echo "<td colspan=4 class='text-center'>Aucun joueur n'appartient à cette équipe</td>";
-                    echo "</tr>";
+                    echo "</tbody>";
+                    echo "</table>";
+                    echo " </div>";
                 }
-                echo "</tbody>";
-                echo "</table>";
-                echo " </div>";
             }
         } else {
             echo "<div class='col-md-12 shadow p-3 bg-body rounded'>";
-            echo 'Indiquez l\'équipe !';
+            echo 'Indiquez la description !';
             echo "</div>";
         }
         ?>
     </div>
+
+    <!-- <script>
+        console.log(document.myform.elements.length);
+    </script> -->
 </body>
 
 </html>

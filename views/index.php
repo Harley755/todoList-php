@@ -23,6 +23,9 @@ $isActive = 'false';
 
 <body>
     <div class="container mt-2">
+        <div class="d-flex justify-content-between">
+            <a href="./search.php" class="btn btn-warning mt-3" style="margin-bottom: 20px; margin-left: 0;">Rechercher</a>
+        </div>
         <div class="col-md-12 shadow p-3 bg-body rounded">
             <div class="card">
                 <div class="card-header">
